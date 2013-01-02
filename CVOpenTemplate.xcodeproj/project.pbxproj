@@ -19,6 +19,13 @@
 		AB3B42771694B64B00A78685 /* MainStoryboard_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AB3B42751694B64B00A78685 /* MainStoryboard_iPhone.storyboard */; };
 		AB3B427A1694B64B00A78685 /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AB3B42781694B64B00A78685 /* MainStoryboard_iPad.storyboard */; };
 		AB3B427D1694B64B00A78685 /* CVViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AB3B427C1694B64B00A78685 /* CVViewController.m */; };
+		AB3B42841694B6C500A78685 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB3B42831694B6C500A78685 /* opencv2.framework */; };
+		AB3B42861694B6D900A78685 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AB3B42851694B6D900A78685 /* libz.dylib */; };
+		AB3B428C1694B71C00A78685 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB3B428B1694B71C00A78685 /* CoreMedia.framework */; };
+		AB3B428E1694B72400A78685 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB3B428D1694B72400A78685 /* CoreVideo.framework */; };
+		AB3B42901694B72D00A78685 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB3B428F1694B72D00A78685 /* AVFoundation.framework */; };
+		AB3B42921694B73400A78685 /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB3B42911694B73400A78685 /* ImageIO.framework */; };
+		AB3B42951694B7B600A78685 /* CVWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = AB3B42941694B7B600A78685 /* CVWrapper.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +46,14 @@
 		AB3B42791694B64B00A78685 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
 		AB3B427B1694B64B00A78685 /* CVViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CVViewController.h; sourceTree = "<group>"; };
 		AB3B427C1694B64B00A78685 /* CVViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CVViewController.m; sourceTree = "<group>"; };
+		AB3B42831694B6C500A78685 /* opencv2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = opencv2.framework; sourceTree = "<group>"; };
+		AB3B42851694B6D900A78685 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		AB3B428B1694B71C00A78685 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		AB3B428D1694B72400A78685 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
+		AB3B428F1694B72D00A78685 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		AB3B42911694B73400A78685 /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
+		AB3B42931694B7B600A78685 /* CVWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CVWrapper.h; sourceTree = "<group>"; };
+		AB3B42941694B7B600A78685 /* CVWrapper.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CVWrapper.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,9 +61,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AB3B42901694B72D00A78685 /* AVFoundation.framework in Frameworks */,
+				AB3B428E1694B72400A78685 /* CoreVideo.framework in Frameworks */,
+				AB3B428C1694B71C00A78685 /* CoreMedia.framework in Frameworks */,
+				AB3B42921694B73400A78685 /* ImageIO.framework in Frameworks */,
 				AB3B425E1694B64A00A78685 /* UIKit.framework in Frameworks */,
 				AB3B42601694B64A00A78685 /* Foundation.framework in Frameworks */,
 				AB3B42621694B64A00A78685 /* CoreGraphics.framework in Frameworks */,
+				AB3B42841694B6C500A78685 /* opencv2.framework in Frameworks */,
+				AB3B42861694B6D900A78685 /* libz.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -58,6 +79,11 @@
 		AB3B424E1694B64A00A78685 = {
 			isa = PBXGroup;
 			children = (
+				AB3B42911694B73400A78685 /* ImageIO.framework */,
+				AB3B428F1694B72D00A78685 /* AVFoundation.framework */,
+				AB3B428D1694B72400A78685 /* CoreVideo.framework */,
+				AB3B428B1694B71C00A78685 /* CoreMedia.framework */,
+				AB3B42851694B6D900A78685 /* libz.dylib */,
 				AB3B42631694B64A00A78685 /* CVOpenTemplate */,
 				AB3B425C1694B64A00A78685 /* Frameworks */,
 				AB3B425A1694B64A00A78685 /* Products */,
@@ -75,6 +101,7 @@
 		AB3B425C1694B64A00A78685 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AB3B42831694B6C500A78685 /* opencv2.framework */,
 				AB3B425D1694B64A00A78685 /* UIKit.framework */,
 				AB3B425F1694B64A00A78685 /* Foundation.framework */,
 				AB3B42611694B64A00A78685 /* CoreGraphics.framework */,
@@ -91,6 +118,8 @@
 				AB3B42781694B64B00A78685 /* MainStoryboard_iPad.storyboard */,
 				AB3B427B1694B64B00A78685 /* CVViewController.h */,
 				AB3B427C1694B64B00A78685 /* CVViewController.m */,
+				AB3B42931694B7B600A78685 /* CVWrapper.h */,
+				AB3B42941694B7B600A78685 /* CVWrapper.mm */,
 				AB3B42641694B64B00A78685 /* Supporting Files */,
 			);
 			path = CVOpenTemplate;
@@ -181,6 +210,7 @@
 				AB3B426A1694B64B00A78685 /* main.m in Sources */,
 				AB3B426E1694B64B00A78685 /* CVAppDelegate.m in Sources */,
 				AB3B427D1694B64B00A78685 /* CVViewController.m in Sources */,
+				AB3B42951694B7B600A78685 /* CVWrapper.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -269,6 +299,10 @@
 		AB3B42811694B64B00A78685 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "CVOpenTemplate/CVOpenTemplate-Prefix.pch";
 				INFOPLIST_FILE = "CVOpenTemplate/CVOpenTemplate-Info.plist";
@@ -280,6 +314,10 @@
 		AB3B42821694B64B00A78685 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "CVOpenTemplate/CVOpenTemplate-Prefix.pch";
 				INFOPLIST_FILE = "CVOpenTemplate/CVOpenTemplate-Info.plist";
