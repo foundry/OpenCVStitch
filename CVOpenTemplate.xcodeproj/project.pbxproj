@@ -26,6 +26,7 @@
 		AB3B42901694B72D00A78685 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB3B428F1694B72D00A78685 /* AVFoundation.framework */; };
 		AB3B42921694B73400A78685 /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB3B42911694B73400A78685 /* ImageIO.framework */; };
 		AB3B42951694B7B600A78685 /* CVWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = AB3B42941694B7B600A78685 /* CVWrapper.mm */; };
+		AB3B42E61695CBA400A78685 /* CVProcessImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3B42E41695CBA300A78685 /* CVProcessImage.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,6 +55,10 @@
 		AB3B42911694B73400A78685 /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
 		AB3B42931694B7B600A78685 /* CVWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CVWrapper.h; sourceTree = "<group>"; };
 		AB3B42941694B7B600A78685 /* CVWrapper.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CVWrapper.mm; sourceTree = "<group>"; };
+		AB3B42DE1695C7AE00A78685 /* UIImage+OpenCV.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIImage+OpenCV.h"; sourceTree = "<group>"; };
+		AB3B42DF1695C7AE00A78685 /* UIImage+OpenCV.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "UIImage+OpenCV.mm"; sourceTree = "<group>"; };
+		AB3B42E41695CBA300A78685 /* CVProcessImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CVProcessImage.cpp; sourceTree = "<group>"; };
+		AB3B42E51695CBA400A78685 /* CVProcessImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CVProcessImage.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,11 +84,6 @@
 		AB3B424E1694B64A00A78685 = {
 			isa = PBXGroup;
 			children = (
-				AB3B42911694B73400A78685 /* ImageIO.framework */,
-				AB3B428F1694B72D00A78685 /* AVFoundation.framework */,
-				AB3B428D1694B72400A78685 /* CoreVideo.framework */,
-				AB3B428B1694B71C00A78685 /* CoreMedia.framework */,
-				AB3B42851694B6D900A78685 /* libz.dylib */,
 				AB3B42631694B64A00A78685 /* CVOpenTemplate */,
 				AB3B425C1694B64A00A78685 /* Frameworks */,
 				AB3B425A1694B64A00A78685 /* Products */,
@@ -101,6 +101,11 @@
 		AB3B425C1694B64A00A78685 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AB3B42911694B73400A78685 /* ImageIO.framework */,
+				AB3B428F1694B72D00A78685 /* AVFoundation.framework */,
+				AB3B428D1694B72400A78685 /* CoreVideo.framework */,
+				AB3B428B1694B71C00A78685 /* CoreMedia.framework */,
+				AB3B42851694B6D900A78685 /* libz.dylib */,
 				AB3B42831694B6C500A78685 /* opencv2.framework */,
 				AB3B425D1694B64A00A78685 /* UIKit.framework */,
 				AB3B425F1694B64A00A78685 /* Foundation.framework */,
@@ -112,6 +117,8 @@
 		AB3B42631694B64A00A78685 /* CVOpenTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				AB3B42DE1695C7AE00A78685 /* UIImage+OpenCV.h */,
+				AB3B42DF1695C7AE00A78685 /* UIImage+OpenCV.mm */,
 				AB3B426C1694B64B00A78685 /* CVAppDelegate.h */,
 				AB3B426D1694B64B00A78685 /* CVAppDelegate.m */,
 				AB3B42751694B64B00A78685 /* MainStoryboard_iPhone.storyboard */,
@@ -120,6 +127,8 @@
 				AB3B427C1694B64B00A78685 /* CVViewController.m */,
 				AB3B42931694B7B600A78685 /* CVWrapper.h */,
 				AB3B42941694B7B600A78685 /* CVWrapper.mm */,
+				AB3B42E51695CBA400A78685 /* CVProcessImage.h */,
+				AB3B42E41695CBA300A78685 /* CVProcessImage.cpp */,
 				AB3B42641694B64B00A78685 /* Supporting Files */,
 			);
 			path = CVOpenTemplate;
@@ -211,6 +220,7 @@
 				AB3B426E1694B64B00A78685 /* CVAppDelegate.m in Sources */,
 				AB3B427D1694B64B00A78685 /* CVViewController.m in Sources */,
 				AB3B42951694B7B600A78685 /* CVWrapper.mm in Sources */,
+				AB3B42E61695CBA400A78685 /* CVProcessImage.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -345,6 +355,7 @@
 				AB3B42821694B64B00A78685 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
