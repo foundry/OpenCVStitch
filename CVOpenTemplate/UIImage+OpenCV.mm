@@ -2,8 +2,8 @@
 //  UIImage+OpenCV.mm
 //  OpenCVClient
 //
-//  Created by JWM on 01/12/2012.
-//  Copyright 2012 JWM / Foundry. All rights reserved.
+//  Created by Washe on 01/12/2012.
+//  Copyright 2012 Washe / Foundry. All rights reserved.
 //
 //  Permission is given to use this source code file without charge in any
 //  project, commercial or otherwise, entirely at your risk, with the condition
@@ -40,6 +40,14 @@
     CGContextRelease(contextRef);
     
     return cvMat;
+}
+
+- (cv::Mat)CVMat3
+{
+    cv::Mat result = [self CVMat];
+    cv::cvtColor(result , result , CV_RGBA2RGB);
+    return result;
+
 }
 
 -(cv::Mat)CVGrayscaleMat

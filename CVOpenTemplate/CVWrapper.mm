@@ -2,34 +2,50 @@
 //  CVWrapper.m
 //  CVOpenTemplate
 //
-//  Created by jonathan on 02/01/2013.
+//  Created by Washe on 02/01/2013.
 //  Copyright (c) 2013 foundry. All rights reserved.
 //
 
 #import "CVWrapper.h"
-#import "CVProcessImage.h"
 #import "UIImage+OpenCV.h"
+#import "stitching.h"
+    //#import <vector>
 
 
 @implementation CVWrapper
 
 + (UIImage*) processImageWithOpenCV: (UIImage*) inputImage
 {
-    UIImage* result = nil;
-    cv::Mat inputMatImage = [inputImage CVMat];
-    cv::Mat outputMatImage = CVProcessImage::processImage(inputMatImage);
-    result = [UIImage imageWithCVMat:outputMatImage];
+    NSArray* imageArray = [NSArray arrayWithObject:inputImage];
+    UIImage* result = [[self class] processWithArray:imageArray];
     return result;
 }
 
 + (UIImage*) processWithOpenCVImage1:(UIImage*)inputImage1 image2:(UIImage*)inputImage2;
 {
-    UIImage* result = nil;
-    cv::Mat inputMatImage1 = [inputImage1 CVMat];
-    cv::Mat inputMatImage2 = [inputImage2 CVMat];
+    NSArray* imageArray = [NSArray arrayWithObjects:inputImage1,inputImage2,nil];
+    UIImage* result = [[self class] processWithArray:imageArray];
+    return result;
+}
 
-    cv::Mat outputMatImage = CVProcessImage::processImagePair(inputMatImage1,inputMatImage2);
-    result = [UIImage imageWithCVMat:outputMatImage];
++ (UIImage*) processWithArray:(NSArray*)imageArray
+{
+    if ([imageArray count]==0){
+        NSLog (@"imageArray is empty");
+        return 0;
+        }
+    cv::vector<cv::Mat> matImages;
+
+    for (id image in imageArray) {
+        if ([image isKindOfClass: [UIImage class]]) {
+            cv::Mat matImage = [image CVMat3];
+            NSLog (@"matImage: %@",image);
+            matImages.push_back(matImage);
+        }
+    }
+    NSLog (@"stitching...");
+    cv::Mat stitchedMat = stitch (matImages);
+    UIImage* result =  [UIImage imageWithCVMat:stitchedMat];
     return result;
 }
 
