@@ -505,7 +505,7 @@ public:
                             CvParamGrid degreeGrid = CvSVM::get_default_grid(CvSVM::DEGREE),
                             bool balanced=false);
     CV_WRAP virtual float predict( const cv::Mat& sample, bool returnDFVal=false ) const;
-    CV_WRAP_AS(predict_all) virtual void predict( cv::InputArray samples, cv::OutputArray results ) const;
+    CV_WRAP_AS(predict_all) void predict( cv::InputArray samples, cv::OutputArray results ) const;
 
     CV_WRAP virtual int get_support_vector_count() const;
     virtual const float* get_support_vector(int i) const;
@@ -534,6 +534,8 @@ protected:
     virtual void write_params( CvFileStorage* fs ) const;
     virtual void read_params( CvFileStorage* fs, CvFileNode* node );
 
+    void optimize_linear_svm();
+
     CvSVMParams params;
     CvMat* class_labels;
     int var_all;
@@ -546,6 +548,10 @@ protected:
 
     CvSVMSolver* solver;
     CvSVMKernel* kernel;
+
+private:
+    CvSVM(const CvSVM&);
+    CvSVM& operator = (const CvSVM&);
 };
 
 /****************************************************************************************\
@@ -796,7 +802,7 @@ struct CV_EXPORTS CvDTreeTrainData
     const CvMat* responses;
     CvMat* responses_copy; // used in Boosting
 
-    int buf_count, buf_size;
+    int buf_count, buf_size; // buf_size is obsolete, please do not use it, use expression ((int64)buf->rows * (int64)buf->cols / buf_count) instead
     bool shared;
     int is_buf_16u;
 
@@ -806,6 +812,12 @@ struct CV_EXPORTS CvDTreeTrainData
 
     CvMat* counts;
     CvMat* buf;
+    inline size_t get_length_subbuf() const
+    {
+        size_t res = (size_t)(work_var_count + 1) * (size_t)sample_count;
+        return res;
+    }
+
     CvMat* direction;
     CvMat* split_buf;
 
@@ -1244,6 +1256,8 @@ public:
     const CvDTreeTrainData* get_data() const;
 
 protected:
+
+    void update_weights_impl( CvBoostTree* tree, double initial_weights[2] );
 
     virtual bool set_params( const CvBoostParams& params );
     virtual void update_weights( CvBoostTree* tree );
@@ -2026,9 +2040,6 @@ public:
     const CvMat* get_responses();
     const CvMat* get_missing() const;
 
-    void set_header_lines_number( int n );
-    int get_header_lines_number() const;
-
     void set_response_idx( int idx ); // old response become predictors, new response_idx = idx
                                       // if idx < 0 there will be no response
     int get_response_idx() const;
@@ -2079,8 +2090,6 @@ protected:
     CvMat* response_out; // header
     CvMat* var_idx_out; // mat
     CvMat* var_types_out; // mat
-
-    int header_lines_number;
 
     int response_idx;
 

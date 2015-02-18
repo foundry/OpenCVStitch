@@ -47,7 +47,10 @@ struct base_any_policy
     virtual ::size_t get_size() = 0;
     virtual const std::type_info& type() = 0;
     virtual void print(std::ostream& out, void* const* src) = 0;
+
+#ifdef OPENCV_CAN_BREAK_BINARY_COMPATIBILITY
     virtual ~base_any_policy() {}
+#endif
 };
 
 template<typename T>
@@ -252,8 +255,7 @@ public:
     const T& cast() const
     {
         if (policy->type() != typeid(T)) throw anyimpl::bad_any_cast();
-        void* obj = const_cast<void*>(object);
-        T* r = reinterpret_cast<T*>(policy->get_value(&obj));
+        T* r = reinterpret_cast<T*>(policy->get_value(const_cast<void **>(&object)));
         return *r;
     }
 

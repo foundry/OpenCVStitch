@@ -78,11 +78,11 @@ using std::vector;
 using std::string;
 using std::ptrdiff_t;
 
-template<typename _Tp> class CV_EXPORTS Size_;
-template<typename _Tp> class CV_EXPORTS Point_;
-template<typename _Tp> class CV_EXPORTS Rect_;
-template<typename _Tp, int cn> class CV_EXPORTS Vec;
-template<typename _Tp, int m, int n> class CV_EXPORTS Matx;
+template<typename _Tp> class Size_;
+template<typename _Tp> class Point_;
+template<typename _Tp> class Rect_;
+template<typename _Tp, int cn> class Vec;
+template<typename _Tp, int m, int n> class Matx;
 
 typedef std::string String;
 
@@ -90,10 +90,18 @@ class Mat;
 class SparseMat;
 typedef Mat MatND;
 
+namespace ogl {
+    class Buffer;
+    class Texture2D;
+    class Arrays;
+}
+
+// < Deprecated
 class GlBuffer;
 class GlTexture;
 class GlArrays;
 class GlCamera;
+// >
 
 namespace gpu {
     class GpuMat;
@@ -104,10 +112,10 @@ class CV_EXPORTS MatOp_Base;
 class CV_EXPORTS MatArg;
 class CV_EXPORTS MatConstIterator;
 
-template<typename _Tp> class CV_EXPORTS Mat_;
-template<typename _Tp> class CV_EXPORTS MatIterator_;
-template<typename _Tp> class CV_EXPORTS MatConstIterator_;
-template<typename _Tp> class CV_EXPORTS MatCommaInitializer_;
+template<typename _Tp> class Mat_;
+template<typename _Tp> class MatIterator_;
+template<typename _Tp> class MatConstIterator_;
+template<typename _Tp> class MatCommaInitializer_;
 
 #if !defined(ANDROID) || (defined(_GLIBCXX_USE_WCHAR_T) && _GLIBCXX_USE_WCHAR_T)
 typedef std::basic_string<wchar_t> WString;
@@ -156,7 +164,7 @@ public:
 
     int code; ///< error code @see CVStatus
     string err; ///< error description
-    string func; ///< function name. Available only when the compiler supports __func__ macro
+    string func; ///< function name. Available only when the compiler supports getting it
     string file; ///< source file name where the error has occured
     int line; ///< line number in the source file where the error has occured
 };
@@ -201,21 +209,26 @@ typedef int (CV_CDECL *ErrorCallback)( int status, const char* func_name,
 CV_EXPORTS ErrorCallback redirectError( ErrorCallback errCallback,
                                         void* userdata=0, void** prevUserdata=0);
 
-#ifdef __GNUC__
-#define CV_Error( code, msg ) cv::error( cv::Exception(code, msg, __func__, __FILE__, __LINE__) )
-#define CV_Error_( code, args ) cv::error( cv::Exception(code, cv::format args, __func__, __FILE__, __LINE__) )
-#define CV_Assert( expr ) if(!!(expr)) ; else cv::error( cv::Exception(CV_StsAssert, #expr, __func__, __FILE__, __LINE__) )
+
+#if defined __GNUC__
+#define CV_Func __func__
+#elif defined _MSC_VER
+#define CV_Func __FUNCTION__
 #else
-#define CV_Error( code, msg ) cv::error( cv::Exception(code, msg, "", __FILE__, __LINE__) )
-#define CV_Error_( code, args ) cv::error( cv::Exception(code, cv::format args, "", __FILE__, __LINE__) )
-#define CV_Assert( expr ) if(!!(expr)) ; else cv::error( cv::Exception(CV_StsAssert, #expr, "", __FILE__, __LINE__) )
+#define CV_Func ""
 #endif
+
+#define CV_Error( code, msg ) cv::error( cv::Exception(code, msg, CV_Func, __FILE__, __LINE__) )
+#define CV_Error_( code, args ) cv::error( cv::Exception(code, cv::format args, CV_Func, __FILE__, __LINE__) )
+#define CV_Assert( expr ) if(!!(expr)) ; else cv::error( cv::Exception(CV_StsAssert, #expr, CV_Func, __FILE__, __LINE__) )
 
 #ifdef _DEBUG
 #define CV_DbgAssert(expr) CV_Assert(expr)
 #else
 #define CV_DbgAssert(expr)
 #endif
+
+CV_EXPORTS void glob(String pattern, std::vector<String>& result, bool recursive = false);
 
 CV_EXPORTS void setNumThreads(int nthreads);
 CV_EXPORTS int getNumThreads();
@@ -329,6 +342,7 @@ template<typename _Tp> static inline _Tp* alignPtr(_Tp* ptr, int n=(int)sizeof(_
 */
 static inline size_t alignSize(size_t sz, int n)
 {
+    assert((n & (n - 1)) == 0); // n is a power of 2
     return (sz + n-1) & -n;
 }
 
@@ -353,7 +367,7 @@ CV_EXPORTS_W bool useOptimized();
 /*!
   The STL-compilant memory Allocator based on cv::fastMalloc() and cv::fastFree()
 */
-template<typename _Tp> class CV_EXPORTS Allocator
+template<typename _Tp> class Allocator
 {
 public:
     typedef _Tp value_type;
@@ -395,7 +409,7 @@ public:
   The class is specialized for each fundamental numerical data type supported by OpenCV.
   It provides DataDepth<T>::value constant.
 */
-template<typename _Tp> class CV_EXPORTS DataDepth {};
+template<typename _Tp> class DataDepth {};
 
 template<> class DataDepth<bool> { public: enum { value = CV_8U, fmt=(int)'u' }; };
 template<> class DataDepth<uchar> { public: enum { value = CV_8U, fmt=(int)'u' }; };
@@ -436,7 +450,7 @@ struct CV_EXPORTS Matx_MulOp {};
 struct CV_EXPORTS Matx_MatMulOp {};
 struct CV_EXPORTS Matx_TOp {};
 
-template<typename _Tp, int m, int n> class CV_EXPORTS Matx
+template<typename _Tp, int m, int n> class Matx
 {
 public:
     typedef _Tp value_type;
@@ -585,7 +599,7 @@ typedef Matx<double, 6, 6> Matx66d;
   In addition to the universal notation like Vec<float, 3>, you can use shorter aliases
   for the most popular specialized variants of Vec, e.g. Vec3f ~ Vec<float, 3>.
 */
-template<typename _Tp, int cn> class CV_EXPORTS Vec : public Matx<_Tp, cn, 1>
+template<typename _Tp, int cn> class Vec : public Matx<_Tp, cn, 1>
 {
 public:
     typedef _Tp value_type;
@@ -681,7 +695,7 @@ typedef Vec<double, 6> Vec6d;
   more convenient access to the real and imaginary parts using through the simple field access, as opposite
   to std::complex::real() and std::complex::imag().
 */
-template<typename _Tp> class CV_EXPORTS Complex
+template<typename _Tp> class Complex
 {
 public:
 
@@ -717,7 +731,7 @@ typedef Complex<double> Complexd;
   as a template parameter. There are a few shorter aliases available for user convenience.
   See cv::Point, cv::Point2i, cv::Point2f and cv::Point2d.
 */
-template<typename _Tp> class CV_EXPORTS Point_
+template<typename _Tp> class Point_
 {
 public:
     typedef _Tp value_type;
@@ -760,7 +774,7 @@ public:
 
   \see cv::Point3i, cv::Point3f and cv::Point3d
 */
-template<typename _Tp> class CV_EXPORTS Point3_
+template<typename _Tp> class Point3_
 {
 public:
     typedef _Tp value_type;
@@ -799,7 +813,7 @@ public:
   The class represents the size of a 2D rectangle, image size, matrix size etc.
   Normally, cv::Size ~ cv::Size_<int> is used.
 */
-template<typename _Tp> class CV_EXPORTS Size_
+template<typename _Tp> class Size_
 {
 public:
     typedef _Tp value_type;
@@ -834,7 +848,7 @@ public:
   The class represents a 2D rectangle with coordinates of the specified data type.
   Normally, cv::Rect ~ cv::Rect_<int> is used.
 */
-template<typename _Tp> class CV_EXPORTS Rect_
+template<typename _Tp> class Rect_
 {
 public:
     typedef _Tp value_type;
@@ -878,6 +892,7 @@ public:
 typedef Point_<int> Point2i;
 typedef Point2i Point;
 typedef Size_<int> Size2i;
+typedef Size_<double> Size2d;
 typedef Size2i Size;
 typedef Rect_<int> Rect;
 typedef Point_<float> Point2f;
@@ -923,7 +938,7 @@ public:
    This is partially specialized cv::Vec class with the number of elements = 4, i.e. a short vector of four elements.
    Normally, cv::Scalar ~ cv::Scalar_<double> is used.
 */
-template<typename _Tp> class CV_EXPORTS Scalar_ : public Vec<_Tp, 4>
+template<typename _Tp> class Scalar_ : public Vec<_Tp, 4>
 {
 public:
     //! various constructors
@@ -1250,7 +1265,7 @@ public:
   \note{Another good property of the class is that the operations on the reference counter are atomic,
   i.e. it is safe to use the class in multi-threaded applications}
 */
-template<typename _Tp> class CV_EXPORTS Ptr
+template<typename _Tp> class Ptr
 {
 public:
     //! empty constructor
@@ -1312,7 +1327,8 @@ public:
         EXPR              = 6 << KIND_SHIFT,
         OPENGL_BUFFER     = 7 << KIND_SHIFT,
         OPENGL_TEXTURE    = 8 << KIND_SHIFT,
-        GPU_MAT           = 9 << KIND_SHIFT
+        GPU_MAT           = 9 << KIND_SHIFT,
+        OCL_MAT           =10 << KIND_SHIFT
     };
     _InputArray();
 
@@ -1327,15 +1343,23 @@ public:
     template<typename _Tp, int m, int n> _InputArray(const Matx<_Tp, m, n>& matx);
     _InputArray(const Scalar& s);
     _InputArray(const double& val);
+    // < Deprecated
     _InputArray(const GlBuffer& buf);
     _InputArray(const GlTexture& tex);
+    // >
     _InputArray(const gpu::GpuMat& d_mat);
+    _InputArray(const ogl::Buffer& buf);
+    _InputArray(const ogl::Texture2D& tex);
 
     virtual Mat getMat(int i=-1) const;
     virtual void getMatVector(vector<Mat>& mv) const;
+    // < Deprecated
     virtual GlBuffer getGlBuffer() const;
     virtual GlTexture getGlTexture() const;
+    // >
     virtual gpu::GpuMat getGpuMat() const;
+    /*virtual*/ ogl::Buffer getOGlBuffer() const;
+    /*virtual*/ ogl::Texture2D getOGlTexture2D() const;
 
     virtual int kind() const;
     virtual Size size(int i=-1) const;
@@ -1345,7 +1369,9 @@ public:
     virtual int channels(int i=-1) const;
     virtual bool empty() const;
 
-    /*virtual*/ ~_InputArray();
+#ifdef OPENCV_CAN_BREAK_BINARY_COMPATIBILITY
+    virtual ~_InputArray();
+#endif
 
     int flags;
     void* obj;
@@ -1385,6 +1411,8 @@ public:
     template<typename _Tp, int m, int n> _OutputArray(Matx<_Tp, m, n>& matx);
     template<typename _Tp> _OutputArray(_Tp* vec, int n);
     _OutputArray(gpu::GpuMat& d_mat);
+    _OutputArray(ogl::Buffer& buf);
+    _OutputArray(ogl::Texture2D& tex);
 
     _OutputArray(const Mat& m);
     template<typename _Tp> _OutputArray(const vector<_Tp>& vec);
@@ -1395,19 +1423,25 @@ public:
     template<typename _Tp, int m, int n> _OutputArray(const Matx<_Tp, m, n>& matx);
     template<typename _Tp> _OutputArray(const _Tp* vec, int n);
     _OutputArray(const gpu::GpuMat& d_mat);
+    _OutputArray(const ogl::Buffer& buf);
+    _OutputArray(const ogl::Texture2D& tex);
 
     virtual bool fixedSize() const;
     virtual bool fixedType() const;
     virtual bool needed() const;
     virtual Mat& getMatRef(int i=-1) const;
-    virtual gpu::GpuMat& getGpuMatRef() const;
+    /*virtual*/ gpu::GpuMat& getGpuMatRef() const;
+    /*virtual*/ ogl::Buffer& getOGlBufferRef() const;
+    /*virtual*/ ogl::Texture2D& getOGlTexture2DRef() const;
     virtual void create(Size sz, int type, int i=-1, bool allowTransposed=false, int fixedDepthMask=0) const;
     virtual void create(int rows, int cols, int type, int i=-1, bool allowTransposed=false, int fixedDepthMask=0) const;
     virtual void create(int dims, const int* size, int type, int i=-1, bool allowTransposed=false, int fixedDepthMask=0) const;
     virtual void release() const;
     virtual void clear() const;
 
-    /*virtual*/ ~_OutputArray();
+#ifdef OPENCV_CAN_BREAK_BINARY_COMPATIBILITY
+    virtual ~_OutputArray();
+#endif
 };
 
 typedef const _InputArray& InputArray;
@@ -2016,6 +2050,40 @@ public:
     uint64 state;
 };
 
+/*!
+   Random Number Generator - MT
+
+   The class implements RNG using the Mersenne Twister algorithm
+*/
+class CV_EXPORTS RNG_MT19937
+{
+public:
+    RNG_MT19937();
+    RNG_MT19937(unsigned s);
+    void seed(unsigned s);
+
+    unsigned next();
+
+    operator int();
+    operator unsigned();
+    operator float();
+    operator double();
+
+    unsigned operator ()(unsigned N);
+    unsigned operator ()();
+
+    //! returns uniformly distributed integer random number from [a,b) range
+    int uniform(int a, int b);
+    //! returns uniformly distributed floating-point random number from [a,b) range
+    float uniform(float a, float b);
+    //! returns uniformly distributed double-precision floating-point random number from [a,b) range
+    double uniform(double a, double b);
+
+private:
+    enum PeriodParameters {N = 624, M = 397};
+    unsigned state[N];
+    int mti;
+};
 
 /*!
  Termination criteria in iterative algorithms
@@ -2033,10 +2101,10 @@ public:
     //! default constructor
     TermCriteria();
     //! full constructor
-    TermCriteria(int _type, int _maxCount, double _epsilon);
+    TermCriteria(int type, int maxCount, double epsilon);
     //! conversion from CvTermCriteria
     TermCriteria(const CvTermCriteria& criteria);
-    //! conversion from CvTermCriteria
+    //! conversion to CvTermCriteria
     operator CvTermCriteria() const;
 
     int type; //!< the type of termination criteria: COUNT, EPS or COUNT + EPS
@@ -2139,11 +2207,15 @@ CV_EXPORTS_W void reduce(InputArray src, OutputArray dst, int dim, int rtype, in
 
 //! makes multi-channel array out of several single-channel arrays
 CV_EXPORTS void merge(const Mat* mv, size_t count, OutputArray dst);
+CV_EXPORTS void merge(const vector<Mat>& mv, OutputArray dst );
+
 //! makes multi-channel array out of several single-channel arrays
 CV_EXPORTS_W void merge(InputArrayOfArrays mv, OutputArray dst);
 
 //! copies each plane of a multi-channel array to a dedicated array
 CV_EXPORTS void split(const Mat& src, Mat* mvbegin);
+CV_EXPORTS void split(const Mat& m, vector<Mat>& mv );
+
 //! copies each plane of a multi-channel array to a dedicated array
 CV_EXPORTS_W void split(InputArray m, OutputArrayOfArrays mv);
 
@@ -2380,7 +2452,7 @@ public:
     PCA(InputArray data, InputArray mean, int flags, double retainedVariance);
     //! operator that performs PCA. The previously stored data, if any, is released
     PCA& operator()(InputArray data, InputArray mean, int flags, int maxComponents=0);
-    PCA& operator()(InputArray data, InputArray mean, int flags, double retainedVariance);
+    PCA& computeVar(InputArray data, InputArray mean, int flags, double retainedVariance);
     //! projects vector from the original space to the principal components subspace
     Mat project(InputArray vec) const;
     //! projects vector from the original space to the principal components subspace
@@ -2398,7 +2470,7 @@ public:
 CV_EXPORTS_W void PCACompute(InputArray data, CV_OUT InputOutputArray mean,
                              OutputArray eigenvectors, int maxComponents=0);
 
-CV_EXPORTS_W void PCACompute(InputArray data, CV_OUT InputOutputArray mean,
+CV_EXPORTS_W void PCAComputeVar(InputArray data, CV_OUT InputOutputArray mean,
                              OutputArray eigenvectors, double retainedVariance);
 
 CV_EXPORTS_W void PCAProject(InputArray data, InputArray mean,
@@ -2562,20 +2634,13 @@ CV_EXPORTS_W void fillPoly(InputOutputArray img, InputArrayOfArrays pts,
                            Point offset=Point() );
 
 //! draws one or more polygonal curves
-CV_EXPORTS void polylines(Mat& img, const Point* const* pts, const int* npts,
+CV_EXPORTS void polylines(Mat& img, const Point** pts, const int* npts,
                           int ncontours, bool isClosed, const Scalar& color,
                           int thickness=1, int lineType=8, int shift=0 );
 
 CV_EXPORTS_W void polylines(InputOutputArray img, InputArrayOfArrays pts,
                             bool isClosed, const Scalar& color,
                             int thickness=1, int lineType=8, int shift=0 );
-
-//! draws contours in the image
-CV_EXPORTS_W void drawContours( InputOutputArray image, InputArrayOfArrays contours,
-                              int contourIdx, const Scalar& color,
-                              int thickness=1, int lineType=8,
-                              InputArray hierarchy=noArray(),
-                              int maxLevel=INT_MAX, Point offset=Point() );
 
 //! clips the line segment by the rectangle Rect(0, 0, imgSize.width, imgSize.height)
 CV_EXPORTS bool clipLine(Size imgSize, CV_IN_OUT Point& pt1, CV_IN_OUT Point& pt2);
@@ -2688,7 +2753,7 @@ CV_EXPORTS_W Size getTextSize(const string& text, int fontFace,
        img(i,j)[2] ^= (uchar)(i ^ j); // img(y,x)[c] accesses c-th channel of the pixel (x,y)
  \endcode
 */
-template<typename _Tp> class CV_EXPORTS Mat_ : public Mat
+template<typename _Tp> class Mat_ : public Mat
 {
 public:
     typedef _Tp value_type;
@@ -2920,7 +2985,7 @@ public:
 
  */
 template<typename _Tp>
-class CV_EXPORTS MatConstIterator_ : public MatConstIterator
+class MatConstIterator_ : public MatConstIterator
 {
 public:
     typedef _Tp value_type;
@@ -2971,7 +3036,7 @@ public:
 
 */
 template<typename _Tp>
-class CV_EXPORTS MatIterator_ : public MatConstIterator_<_Tp>
+class MatIterator_ : public MatConstIterator_<_Tp>
 {
 public:
     typedef _Tp* pointer;
@@ -3012,7 +3077,7 @@ public:
     MatIterator_ operator ++(int);
 };
 
-template<typename _Tp> class CV_EXPORTS MatOp_Iter_;
+template<typename _Tp> class MatOp_Iter_;
 
 /*!
  Comma-separated Matrix Initializer
@@ -3027,7 +3092,7 @@ template<typename _Tp> class CV_EXPORTS MatOp_Iter_;
  Mat R = (Mat_<double>(2,2) << a, -b, b, a);
  \endcode
 */
-template<typename _Tp> class CV_EXPORTS MatCommaInitializer_
+template<typename _Tp> class MatCommaInitializer_
 {
 public:
     //! the constructor, created by "matrix << firstValue" operator, where matrix is cv::Mat
@@ -3042,7 +3107,7 @@ protected:
 };
 
 
-template<typename _Tp, int m, int n> class CV_EXPORTS MatxCommaInitializer
+template<typename _Tp, int m, int n> class MatxCommaInitializer
 {
 public:
     MatxCommaInitializer(Matx<_Tp, m, n>* _mtx);
@@ -3053,7 +3118,7 @@ public:
     int idx;
 };
 
-template<typename _Tp, int m> class CV_EXPORTS VecCommaInitializer : public MatxCommaInitializer<_Tp, m, 1>
+template<typename _Tp, int m> class VecCommaInitializer : public MatxCommaInitializer<_Tp, m, 1>
 {
 public:
     VecCommaInitializer(Vec<_Tp, m>* _vec);
@@ -3088,7 +3153,7 @@ public:
  }
  \endcode
 */
-template<typename _Tp, size_t fixed_size=4096/sizeof(_Tp)+8> class CV_EXPORTS AutoBuffer
+template<typename _Tp, size_t fixed_size=4096/sizeof(_Tp)+8> class AutoBuffer
 {
 public:
     typedef _Tp value_type;
@@ -3350,8 +3415,6 @@ public:
     //! converts dense 2d matrix to the sparse form
     /*!
      \param m the input matrix
-     \param try1d if true and m is a single-column matrix (Nx1),
-            then the sparse matrix will be 1-dimensional.
     */
     explicit SparseMat(const Mat& m);
     //! converts old-style sparse matrix to the new-style. All the data is copied
@@ -3661,7 +3724,7 @@ public:
  m_.ref(2) += m_(3); // equivalent to m.ref<int>(2) += m.value<int>(3);
  \endcode
 */
-template<typename _Tp> class CV_EXPORTS SparseMat_ : public SparseMat
+template<typename _Tp> class SparseMat_ : public SparseMat
 {
 public:
     typedef SparseMatIterator_<_Tp> iterator;
@@ -3735,7 +3798,7 @@ public:
  This is the derived from SparseMatConstIterator class that
  introduces more convenient operator *() for accessing the current element.
 */
-template<typename _Tp> class CV_EXPORTS SparseMatConstIterator_ : public SparseMatConstIterator
+template<typename _Tp> class SparseMatConstIterator_ : public SparseMatConstIterator
 {
 public:
     typedef std::forward_iterator_tag iterator_category;
@@ -3744,6 +3807,7 @@ public:
     SparseMatConstIterator_();
     //! the full constructor setting the iterator to the first sparse matrix element
     SparseMatConstIterator_(const SparseMat_<_Tp>* _m);
+    SparseMatConstIterator_(const SparseMat* _m);
     //! the copy constructor
     SparseMatConstIterator_(const SparseMatConstIterator_& it);
 
@@ -3764,7 +3828,7 @@ public:
  This is the derived from cv::SparseMatConstIterator_ class that
  introduces more convenient operator *() for accessing the current element.
 */
-template<typename _Tp> class CV_EXPORTS SparseMatIterator_ : public SparseMatConstIterator_<_Tp>
+template<typename _Tp> class SparseMatIterator_ : public SparseMatConstIterator_<_Tp>
 {
 public:
     typedef std::forward_iterator_tag iterator_category;
@@ -3773,6 +3837,7 @@ public:
     SparseMatIterator_();
     //! the full constructor setting the iterator to the first sparse matrix element
     SparseMatIterator_(SparseMat_<_Tp>* _m);
+    SparseMatIterator_(SparseMat* _m);
     //! the copy constructor
     SparseMatIterator_(const SparseMatIterator_& it);
 
@@ -4010,7 +4075,7 @@ public:
     //! closes the file and releases all the memory buffers
     CV_WRAP virtual void release();
     //! closes the file, releases all the memory buffers and returns the text string
-    CV_WRAP virtual string releaseAndGetString();
+    CV_WRAP string releaseAndGetString();
 
     //! returns the first element of the top-level mapping
     CV_WRAP FileNode getFirstTopLevelNode() const;
@@ -4195,7 +4260,7 @@ typedef Ptr<CvMemStorage> MemStorage;
     i.e. no constructors or destructors
     are called for the sequence elements.
 */
-template<typename _Tp> class CV_EXPORTS Seq
+template<typename _Tp> class Seq
 {
 public:
     typedef SeqIterator<_Tp> iterator;
@@ -4278,7 +4343,7 @@ public:
 /*!
  STL-style Sequence Iterator inherited from the CvSeqReader structure
 */
-template<typename _Tp> class CV_EXPORTS SeqIterator : public CvSeqReader
+template<typename _Tp> class SeqIterator : public CvSeqReader
 {
 public:
     //! the default constructor
@@ -4422,6 +4487,11 @@ public:
                   void (Algorithm::*setter)(int)=0,
                   const string& help=string());
     void addParam(Algorithm& algo, const char* name,
+                  short& value, bool readOnly=false,
+                  int (Algorithm::*getter)()=0,
+                  void (Algorithm::*setter)(int)=0,
+                  const string& help=string());
+    void addParam(Algorithm& algo, const char* name,
                   bool& value, bool readOnly=false,
                   int (Algorithm::*getter)()=0,
                   void (Algorithm::*setter)(int)=0,
@@ -4451,6 +4521,26 @@ public:
                   Ptr<Algorithm> (Algorithm::*getter)()=0,
                   void (Algorithm::*setter)(const Ptr<Algorithm>&)=0,
                   const string& help=string());
+    void addParam(Algorithm& algo, const char* name,
+                  float& value, bool readOnly=false,
+                  float (Algorithm::*getter)()=0,
+                  void (Algorithm::*setter)(float)=0,
+                  const string& help=string());
+    void addParam(Algorithm& algo, const char* name,
+                  unsigned int& value, bool readOnly=false,
+                  unsigned int (Algorithm::*getter)()=0,
+                  void (Algorithm::*setter)(unsigned int)=0,
+                  const string& help=string());
+    void addParam(Algorithm& algo, const char* name,
+                  uint64& value, bool readOnly=false,
+                  uint64 (Algorithm::*getter)()=0,
+                  void (Algorithm::*setter)(uint64)=0,
+                  const string& help=string());
+    void addParam(Algorithm& algo, const char* name,
+                  uchar& value, bool readOnly=false,
+                  uchar (Algorithm::*getter)()=0,
+                  void (Algorithm::*setter)(uchar)=0,
+                  const string& help=string());
     template<typename _Tp, typename _Base> void addParam(Algorithm& algo, const char* name,
                   Ptr<_Tp>& value, bool readOnly=false,
                   Ptr<_Tp> (Algorithm::*getter)()=0,
@@ -4470,7 +4560,7 @@ protected:
 
 struct CV_EXPORTS Param
 {
-    enum { INT=0, BOOLEAN=1, REAL=2, STRING=3, MAT=4, MAT_VECTOR=5, ALGORITHM=6, FLOAT=7, UNSIGNED_INT=8, UINT64=9 };
+    enum { INT=0, BOOLEAN=1, REAL=2, STRING=3, MAT=4, MAT_VECTOR=5, ALGORITHM=6, FLOAT=7, UNSIGNED_INT=8, UINT64=9, SHORT=10, UCHAR=11 };
 
     Param();
     Param(int _type, bool _readonly, int _offset,
@@ -4499,6 +4589,14 @@ template<> struct ParamType<int>
     typedef int member_type;
 
     enum { type = Param::INT };
+};
+
+template<> struct ParamType<short>
+{
+    typedef int const_param_type;
+    typedef int member_type;
+
+    enum { type = Param::SHORT };
 };
 
 template<> struct ParamType<double>
@@ -4565,50 +4663,121 @@ template<> struct ParamType<uint64>
     enum { type = Param::UINT64 };
 };
 
+template<> struct ParamType<uchar>
+{
+    typedef uchar const_param_type;
+    typedef uchar member_type;
 
-// The CommandLineParser class is designed for command line arguments parsing
+    enum { type = Param::UCHAR };
+};
 
+/*!
+"\nThe CommandLineParser class is designed for command line arguments parsing\n"
+           "Keys map: \n"
+           "Before you start to work with CommandLineParser you have to create a map for keys.\n"
+           "    It will look like this\n"
+           "    const char* keys =\n"
+           "    {\n"
+           "        {    s|  string|  123asd |string parameter}\n"
+           "        {    d|  digit |  100    |digit parameter }\n"
+           "        {    c|noCamera|false    |without camera  }\n"
+           "        {    1|        |some text|help            }\n"
+           "        {    2|        |333      |another help    }\n"
+           "    };\n"
+           "Usage syntax: \n"
+           "    \"{\" - start of parameter string.\n"
+           "    \"}\" - end of parameter string\n"
+           "    \"|\" - separator between short name, full name, default value and help\n"
+           "Supported syntax: \n"
+           "    --key1=arg1  <If a key with '--' must has an argument\n"
+           "                  you have to assign it through '=' sign.> \n"
+           "<If the key with '--' doesn't have any argument, it means that it is a bool key>\n"
+           "    -key2=arg2   <If a key with '-' must has an argument \n"
+           "                  you have to assign it through '=' sign.> \n"
+           "If the key with '-' doesn't have any argument, it means that it is a bool key\n"
+           "    key3                 <This key can't has any parameter> \n"
+           "Usage: \n"
+           "      Imagine that the input parameters are next:\n"
+           "                -s=string_value --digit=250 --noCamera lena.jpg 10000\n"
+           "    CommandLineParser parser(argc, argv, keys) - create a parser object\n"
+           "    parser.get<string>(\"s\" or \"string\") will return you first parameter value\n"
+           "    parser.get<string>(\"s\", false or \"string\", false) will return you first parameter value\n"
+           "                                                                without spaces in end and begin\n"
+           "    parser.get<int>(\"d\" or \"digit\") will return you second parameter value.\n"
+           "                    It also works with 'unsigned int', 'double', and 'float' types>\n"
+           "    parser.get<bool>(\"c\" or \"noCamera\") will return you true .\n"
+           "                                If you enter this key in commandline>\n"
+           "                                It return you false otherwise.\n"
+           "    parser.get<string>(\"1\") will return you the first argument without parameter (lena.jpg) \n"
+           "    parser.get<int>(\"2\") will return you the second argument without parameter (10000)\n"
+           "                          It also works with 'unsigned int', 'double', and 'float' types \n"
+*/
 class CV_EXPORTS CommandLineParser
 {
-public:
-    CommandLineParser(int argc, const char* const argv[], const string& keys);
-    CommandLineParser(const CommandLineParser& parser);
-    CommandLineParser& operator = (const CommandLineParser& parser);
+    public:
 
-    string getPathToApplication() const;
+    //! the default constructor
+      CommandLineParser(int argc, const char* const argv[], const char* key_map);
 
-    template <typename T>
-    T get(const string& name, bool space_delete = true) const
+    //! get parameter, you can choose: delete spaces in end and begin or not
+    template<typename _Tp>
+    _Tp get(const std::string& name, bool space_delete=true)
     {
-        T val = T();
-        getByName(name, space_delete, ParamType<T>::type, (void*)&val);
-        return val;
+        if (!has(name))
+        {
+            return _Tp();
+        }
+        std::string str = getString(name);
+        return analyzeValue<_Tp>(str, space_delete);
     }
 
-    template <typename T>
-    T get(int index, bool space_delete = true) const
+    //! print short name, full name, current value and help for all params
+    void printParams();
+
+    protected:
+    std::map<std::string, std::vector<std::string> > data;
+    std::string getString(const std::string& name);
+
+    bool has(const std::string& keys);
+
+    template<typename _Tp>
+    _Tp analyzeValue(const std::string& str, bool space_delete=false);
+
+    template<typename _Tp>
+    static _Tp getData(const std::string& str)
     {
-        T val = T();
-        getByIndex(index, space_delete, ParamType<T>::type, (void*)&val);
-        return val;
+        _Tp res = _Tp();
+        std::stringstream s1(str);
+        s1 >> res;
+        return res;
     }
 
-    bool has(const string& name) const;
+    template<typename _Tp>
+     _Tp fromStringNumber(const std::string& str);//the default conversion function for numbers
 
-    bool check() const;
+    };
 
-    void about(const string& message);
+template<> CV_EXPORTS
+bool CommandLineParser::get<bool>(const std::string& name, bool space_delete);
 
-    void printMessage() const;
-    void printErrors() const;
+template<> CV_EXPORTS
+std::string CommandLineParser::analyzeValue<std::string>(const std::string& str, bool space_delete);
 
-protected:
-    void getByName(const string& name, bool space_delete, int type, void* dst) const;
-    void getByIndex(int index, bool space_delete, int type, void* dst) const;
+template<> CV_EXPORTS
+int CommandLineParser::analyzeValue<int>(const std::string& str, bool space_delete);
 
-    struct Impl;
-    Impl* impl;
-};
+template<> CV_EXPORTS
+unsigned int CommandLineParser::analyzeValue<unsigned int>(const std::string& str, bool space_delete);
+
+template<> CV_EXPORTS
+uint64 CommandLineParser::analyzeValue<uint64>(const std::string& str, bool space_delete);
+
+template<> CV_EXPORTS
+float CommandLineParser::analyzeValue<float>(const std::string& str, bool space_delete);
+
+template<> CV_EXPORTS
+double CommandLineParser::analyzeValue<double>(const std::string& str, bool space_delete);
+
 
 /////////////////////////////// Parallel Primitives //////////////////////////////////
 
@@ -4648,6 +4817,35 @@ public:
     ~AutoLock() { mutex->unlock(); }
 protected:
     Mutex* mutex;
+private:
+    AutoLock(const AutoLock&);
+    AutoLock& operator = (const AutoLock&);
+};
+
+class TLSDataContainer
+{
+private:
+    int key_;
+protected:
+    CV_EXPORTS TLSDataContainer();
+    CV_EXPORTS ~TLSDataContainer(); // virtual is not required
+public:
+    virtual void* createDataInstance() const = 0;
+    virtual void deleteDataInstance(void* data) const = 0;
+
+    CV_EXPORTS void* getData() const;
+};
+
+template <typename T>
+class TLSData : protected TLSDataContainer
+{
+public:
+    inline TLSData() {}
+    inline ~TLSData() {}
+    inline T* get() const { return (T*)getData(); }
+private:
+    virtual void* createDataInstance() const { return new T; }
+    virtual void deleteDataInstance(void* data) const { delete (T*)data; }
 };
 
 }

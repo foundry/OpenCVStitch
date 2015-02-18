@@ -398,6 +398,10 @@ CV_EXPORTS_W void GaussianBlur( InputArray src,
 CV_EXPORTS_W void bilateralFilter( InputArray src, OutputArray dst, int d,
                                    double sigmaColor, double sigmaSpace,
                                    int borderType=BORDER_DEFAULT );
+//! smooths the image using adaptive bilateral filter
+CV_EXPORTS_W void adaptiveBilateralFilter( InputArray src, OutputArray dst, Size ksize,
+                                           double sigmaSpace, double maxSigmaColor = 20.0, Point anchor=Point(-1, -1),
+                                           int borderType=BORDER_DEFAULT );
 //! smooths the image using the box filter. Each pixel is processed in O(1) time
 CV_EXPORTS_W void boxFilter( InputArray src, OutputArray dst, int ddepth,
                              Size ksize, Point anchor=Point(-1,-1),
@@ -478,7 +482,7 @@ CV_EXPORTS_W void HoughLines( InputArray image, OutputArray lines,
                               double rho, double theta, int threshold,
                               double srn=0, double stn=0 );
 
-//! finds line segments in the black-n-white image using probabalistic Hough transform
+//! finds line segments in the black-n-white image using probabilistic Hough transform
 CV_EXPORTS_W void HoughLinesP( InputArray image, OutputArray lines,
                                double rho, double theta, int threshold,
                                double minLineLength=0, double maxLineGap=0 );
@@ -637,7 +641,9 @@ CV_EXPORTS_W void accumulateWeighted( InputArray src, InputOutputArray dst,
 CV_EXPORTS_W double PSNR(InputArray src1, InputArray src2);
 
 CV_EXPORTS_W Point2d phaseCorrelate(InputArray src1, InputArray src2,
-                                    InputArray window = noArray(), CV_OUT double* response=0);
+                                  InputArray window = noArray());
+CV_EXPORTS_W Point2d phaseCorrelateRes(InputArray src1, InputArray src2,
+                                    InputArray window, CV_OUT double* response = 0);
 CV_EXPORTS_W void createHanningWindow(OutputArray dst, Size winSize, int type);
 
 //! type of the threshold operation
@@ -756,6 +762,21 @@ CV_EXPORTS double compareHist( const SparseMat& H1, const SparseMat& H2, int met
 
 //! normalizes the grayscale image brightness and contrast by normalizing its histogram
 CV_EXPORTS_W void equalizeHist( InputArray src, OutputArray dst );
+
+class CV_EXPORTS_W CLAHE : public Algorithm
+{
+public:
+    CV_WRAP virtual void apply(InputArray src, OutputArray dst) = 0;
+
+    CV_WRAP virtual void setClipLimit(double clipLimit) = 0;
+    CV_WRAP virtual double getClipLimit() const = 0;
+
+    CV_WRAP virtual void setTilesGridSize(Size tileGridSize) = 0;
+    CV_WRAP virtual Size getTilesGridSize() const = 0;
+
+    CV_WRAP virtual void collectGarbage() = 0;
+};
+CV_EXPORTS_W Ptr<CLAHE> createCLAHE(double clipLimit = 40.0, Size tileGridSize = Size(8, 8));
 
 CV_EXPORTS float EMD( InputArray signature1, InputArray signature2,
                       int distType, InputArray cost=noArray(),
@@ -1048,18 +1069,21 @@ enum
     COLOR_RGBA2mRGBA = 125,
     COLOR_mRGBA2RGBA = 126,
 
-    // Edge-Aware Demosaicing
-    COLOR_BayerBG2BGR_EA = 127,
-    COLOR_BayerGB2BGR_EA = 128,
-    COLOR_BayerRG2BGR_EA = 129,
-    COLOR_BayerGR2BGR_EA = 130,
+    COLOR_RGB2YUV_I420 = 127,
+    COLOR_BGR2YUV_I420 = 128,
+    COLOR_RGB2YUV_IYUV = COLOR_RGB2YUV_I420,
+    COLOR_BGR2YUV_IYUV = COLOR_BGR2YUV_I420,
 
-    COLOR_BayerBG2RGB_EA = COLOR_BayerRG2BGR_EA,
-    COLOR_BayerGB2RGB_EA = COLOR_BayerGR2BGR_EA,
-    COLOR_BayerRG2RGB_EA = COLOR_BayerBG2BGR_EA,
-    COLOR_BayerGR2RGB_EA = COLOR_BayerGB2BGR_EA,
+    COLOR_RGBA2YUV_I420 = 129,
+    COLOR_BGRA2YUV_I420 = 130,
+    COLOR_RGBA2YUV_IYUV = COLOR_RGBA2YUV_I420,
+    COLOR_BGRA2YUV_IYUV = COLOR_BGRA2YUV_I420,
+    COLOR_RGB2YUV_YV12  = 131,
+    COLOR_BGR2YUV_YV12  = 132,
+    COLOR_RGBA2YUV_YV12 = 133,
+    COLOR_BGRA2YUV_YV12 = 134,
 
-    COLOR_COLORCVT_MAX  = 131
+    COLOR_COLORCVT_MAX  = 135
 };
 
 
@@ -1129,6 +1153,13 @@ CV_EXPORTS_W void findContours( InputOutputArray image, OutputArrayOfArrays cont
 //! retrieves contours from black-n-white image.
 CV_EXPORTS void findContours( InputOutputArray image, OutputArrayOfArrays contours,
                               int mode, int method, Point offset=Point());
+
+//! draws contours in the image
+CV_EXPORTS_W void drawContours( InputOutputArray image, InputArrayOfArrays contours,
+                              int contourIdx, const Scalar& color,
+                              int thickness=1, int lineType=8,
+                              InputArray hierarchy=noArray(),
+                              int maxLevel=INT_MAX, Point offset=Point() );
 
 //! approximates contour or a curve using Douglas-Peucker algorithm
 CV_EXPORTS_W void approxPolyDP( InputArray curve,
@@ -1262,9 +1293,6 @@ protected:
     Point2f topLeft;
     Point2f bottomRight;
 };
-
-// main function for all demosaicing procceses
-CV_EXPORTS_W void demosaicing(InputArray _src, OutputArray _dst, int code, int dcn = 0);
 
 }
 

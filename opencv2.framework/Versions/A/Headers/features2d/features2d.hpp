@@ -263,6 +263,8 @@ public:
                                      OutputArray descriptors,
                                      bool useProvidedKeypoints=false ) const = 0;
 
+    CV_WRAP void compute( const Mat& image, CV_OUT CV_IN_OUT std::vector<KeyPoint>& keypoints, CV_OUT Mat& descriptors ) const;
+
     // Create feature detector and descriptor extractor by name.
     CV_WRAP static Ptr<Feature2D> create( const string& name );
 };
@@ -564,21 +566,21 @@ protected:
 
 //! detects corners using FAST algorithm by E. Rosten
 CV_EXPORTS void FAST( InputArray image, CV_OUT vector<KeyPoint>& keypoints,
-                      int threshold, bool nonmaxSupression=true );
+                      int threshold, bool nonmaxSuppression=true );
 
-CV_EXPORTS void FAST( InputArray image, CV_OUT vector<KeyPoint>& keypoints,
-                      int threshold, bool nonmaxSupression, int type );
+CV_EXPORTS void FASTX( InputArray image, CV_OUT vector<KeyPoint>& keypoints,
+                      int threshold, bool nonmaxSuppression, int type );
 
 class CV_EXPORTS_W FastFeatureDetector : public FeatureDetector
 {
 public:
+
     enum
-    {
+    { // Define it in old class to simplify migration to 2.5
       TYPE_5_8 = 0, TYPE_7_12 = 1, TYPE_9_16 = 2
     };
 
-    CV_WRAP FastFeatureDetector( int threshold=10, bool nonmaxSuppression=true);
-    CV_WRAP FastFeatureDetector( int threshold, bool nonmaxSuppression, int type);
+    CV_WRAP FastFeatureDetector( int threshold=10, bool nonmaxSuppression=true );
     AlgorithmInfo* info() const;
 
 protected:
@@ -586,15 +588,14 @@ protected:
 
     int threshold;
     bool nonmaxSuppression;
-    int type;
 };
 
 
-class CV_EXPORTS GFTTDetector : public FeatureDetector
+class CV_EXPORTS_W GFTTDetector : public FeatureDetector
 {
 public:
-    GFTTDetector( int maxCorners=1000, double qualityLevel=0.01, double minDistance=1,
-                  int blockSize=3, bool useHarrisDetector=false, double k=0.04 );
+    CV_WRAP GFTTDetector( int maxCorners=1000, double qualityLevel=0.01, double minDistance=1,
+                          int blockSize=3, bool useHarrisDetector=false, double k=0.04 );
     AlgorithmInfo* info() const;
 
 protected:
@@ -659,6 +660,7 @@ protected:
   virtual void findBlobs(const Mat &image, const Mat &binaryImage, vector<Center> &centers) const;
 
   Params params;
+  AlgorithmInfo* info() const;
 };
 
 
@@ -1015,7 +1017,7 @@ struct CV_EXPORTS Hamming
 
 typedef Hamming HammingLUT;
 
-template<int cellsize> struct CV_EXPORTS HammingMultilevel
+template<int cellsize> struct HammingMultilevel
 {
     enum { normType = NORM_HAMMING + (cellsize>1) };
     typedef unsigned char ValueType;
@@ -1199,13 +1201,14 @@ protected:
 class CV_EXPORTS_W BFMatcher : public DescriptorMatcher
 {
 public:
-    CV_WRAP BFMatcher( int normType, bool crossCheck=false );
+    CV_WRAP BFMatcher( int normType=NORM_L2, bool crossCheck=false );
     virtual ~BFMatcher() {}
 
     virtual bool isMaskSupported() const { return true; }
 
     virtual Ptr<DescriptorMatcher> clone( bool emptyTrainData=false ) const;
 
+    AlgorithmInfo* info() const;
 protected:
     virtual void knnMatchImpl( const Mat& queryDescriptors, vector<vector<DMatch> >& matches, int k,
            const vector<Mat>& masks=vector<Mat>(), bool compactResult=false );
@@ -1239,6 +1242,7 @@ public:
 
     virtual Ptr<DescriptorMatcher> clone( bool emptyTrainData=false ) const;
 
+    AlgorithmInfo* info() const;
 protected:
     static void convertToDMatches( const DescriptorCollection& descriptors,
                                    const Mat& indices, const Mat& distances,
